@@ -165,6 +165,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
 
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
                     //self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
+                    CVWrapper.drawContours(UIImage())
                 })
             } else {
                 dispatch_async(videoProcessorQueue, { () -> Void in

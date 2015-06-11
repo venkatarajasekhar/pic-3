@@ -12,7 +12,7 @@ using namespace cv;
 using namespace std;
 
 
-bool ContourDetector::processFrame(const cv::Mat &inputFrame, cv::Mat &outputFrame)
+cv::Mat ContourDetector::processFrame(const cv::Mat &inputFrame)
 {
     cvtColor(inputFrame, gray, cv::COLOR_BGR2GRAY);
     
@@ -20,9 +20,9 @@ bool ContourDetector::processFrame(const cv::Mat &inputFrame, cv::Mat &outputFra
     Canny(gray, edges, 50, 150);
     vector<vector<Point>> c;
     findContours(edges, c, RETR_LIST, CHAIN_APPROX_NONE);
-    
+    cv::Mat outputFrame;
     inputFrame.copyTo(outputFrame);
     drawContours(outputFrame, c, -1, Scalar(0,200,0));
     
-    return true;
+    return outputFrame;
 }

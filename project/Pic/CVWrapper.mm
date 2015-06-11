@@ -8,19 +8,19 @@
 
 #import "CVWrapper.h"
 #import "UIImage+OpenCV.h"
+#import "ContourDetector.h"
 #import "stitching.h"
-
 
 @implementation CVWrapper
 
-+ (UIImage*) processImageWithOpenCV: (UIImage*) inputImage
++ (UIImage*)processImageWithOpenCV:(UIImage*) inputImage
 {
     NSArray* imageArray = [NSArray arrayWithObject:inputImage];
     UIImage* result = [[self class] processWithArray:imageArray];
     return result;
 }
 
-+ (UIImage*) processWithOpenCVImage1:(UIImage*)inputImage1 image2:(UIImage*)inputImage2;
++ (UIImage*)processWithOpenCVImage1:(UIImage*)inputImage1 image2:(UIImage*)inputImage2;
 {
     NSArray* imageArray = [NSArray arrayWithObjects:inputImage1,inputImage2,nil];
     UIImage* result = [[self class] processWithArray:imageArray];
@@ -28,7 +28,7 @@
 }
 
 
-+ (UIImage*) processWithArray:(NSArray*)imageArray
++ (UIImage*)processWithArray:(NSArray*)imageArray
 {
     if ([imageArray count]==0){
         NSLog (@"imageArray is empty");
@@ -43,10 +43,19 @@
             matImages.push_back(matImage);
         }
     }
-    NSLog (@"Detecting contours...");
+    NSLog (@"Stitching...");
     cv::Mat stitchedMat = stitch (matImages);
+    
     UIImage* result =  [UIImage imageWithCVMat:stitchedMat];
     return result;
+}
+
++ (UIImage *)drawContours:(UIImage *)inputImage
+{
+    cv::Mat matImage = [inputImage CVMat3];
+    ContourDetector::ContourDetector contourDetector;
+    return [UIImage imageWithCVMat:contourDetector.processFrame(matImage)];
+    
 }
 
 

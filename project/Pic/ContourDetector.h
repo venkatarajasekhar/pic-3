@@ -17,7 +17,8 @@ class ContourDetector
 {
     
     // Processes a frame and returns output image
-    bool processFrame(const cv::Mat& inputFrame, cv::Mat& outputFrame);
+    public:
+        cv::Mat processFrame(const cv::Mat& inputFrame);
     
     private:
         cv::Mat gray, edges;
