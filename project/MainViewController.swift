@@ -164,7 +164,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 let features = faceDetector != nil ? faceDetector.featuresInImage(ciImage, options: imageOptions) : []
 
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
+                    //self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
                 })
             } else {
                 dispatch_async(videoProcessorQueue, { () -> Void in

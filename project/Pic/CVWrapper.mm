@@ -27,6 +27,7 @@
     return result;
 }
 
+
 + (UIImage*) processWithArray:(NSArray*)imageArray
 {
     if ([imageArray count]==0){
@@ -42,7 +43,7 @@
             matImages.push_back(matImage);
         }
     }
-    NSLog (@"stitching...");
+    NSLog (@"Detecting contours...");
     cv::Mat stitchedMat = stitch (matImages);
     UIImage* result =  [UIImage imageWithCVMat:stitchedMat];
     return result;

@@ -6,11 +6,11 @@
 //  Copyright (c) 2015 Kashish Hora. All rights reserved.
 //
 
-#include "optical_flow_demo.h"
-
 /* --Sparse Optical Flow Demo Program--
  * Written by David Stavens (david.stavens@ai.stanford.edu)
  */
+
+#include <opencv2/opencv.hpp>
 #include <stdio.h>
 #include <math.h>
 

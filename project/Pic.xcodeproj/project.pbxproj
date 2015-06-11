@@ -11,7 +11,6 @@
 		A42875B01A4BA78C00F46907 /* CoreMedia.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A42875AF1A4BA78C00F46907 /* CoreMedia.framework */; };
 		A42875B21A4BA79600F46907 /* CoreVideo.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A42875B11A4BA79600F46907 /* CoreVideo.framework */; };
 		A45A21F41B29076800B4E6A4 /* UIImage+OpenCV.mm in Sources */ = {isa = PBXBuildFile; fileRef = A45A21F31B29076800B4E6A4 /* UIImage+OpenCV.mm */; };
-		A45A21FB1B29249700B4E6A4 /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A45A21FA1B29249700B4E6A4 /* libjpeg.a */; };
 		A469E0BA1A4A1C020020DDD9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A469E0B91A4A1C020020DDD9 /* AppDelegate.swift */; };
 		A469E0BF1A4A1C020020DDD9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A469E0BD1A4A1C020020DDD9 /* Main.storyboard */; };
 		A469E0C11A4A1C020020DDD9 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A469E0C01A4A1C020020DDD9 /* Images.xcassets */; };
@@ -29,6 +28,7 @@
 		A4EBE0881B2A012F006A1811 /* CVWrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = A4EBE0871B2A012F006A1811 /* CVWrapper.mm */; };
 		A4EBE08B1B2A0137006A1811 /* stitching.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4EBE0891B2A0137006A1811 /* stitching.cpp */; };
 		A4EBE0921B2A0621006A1811 /* optical_flow_demo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4EBE0901B2A0621006A1811 /* optical_flow_demo.cpp */; };
+		A4EBE09B1B2A17EC006A1811 /* ContourDetector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4EBE0991B2A17EC006A1811 /* ContourDetector.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,7 +49,6 @@
 		A45A21F11B29076800B4E6A4 /* Pic-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Pic-Bridging-Header.h"; sourceTree = "<group>"; };
 		A45A21F21B29076800B4E6A4 /* UIImage+OpenCV.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+OpenCV.h"; sourceTree = "<group>"; };
 		A45A21F31B29076800B4E6A4 /* UIImage+OpenCV.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = "UIImage+OpenCV.mm"; sourceTree = "<group>"; };
-		A45A21FA1B29249700B4E6A4 /* libjpeg.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjpeg.a; path = "../../../../../opt/libjpeg-turbo/lib/libjpeg.a"; sourceTree = "<group>"; };
 		A469E0B41A4A1C020020DDD9 /* Pic.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Pic.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A469E0B81A4A1C020020DDD9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A469E0B91A4A1C020020DDD9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -73,7 +72,8 @@
 		A4EBE0891B2A0137006A1811 /* stitching.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stitching.cpp; sourceTree = "<group>"; };
 		A4EBE08A1B2A0137006A1811 /* stitching.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stitching.h; sourceTree = "<group>"; };
 		A4EBE0901B2A0621006A1811 /* optical_flow_demo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = optical_flow_demo.cpp; sourceTree = "<group>"; };
-		A4EBE0911B2A0621006A1811 /* optical_flow_demo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = optical_flow_demo.h; sourceTree = "<group>"; };
+		A4EBE0991B2A17EC006A1811 /* ContourDetector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ContourDetector.cpp; sourceTree = "<group>"; };
+		A4EBE09A1B2A17EC006A1811 /* ContourDetector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ContourDetector.h; sourceTree = "<group>"; };
 		D2C07A7E5FB8AEBF937C99D9 /* Pods.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = Pods.debug.xcconfig; path = "Pods/Target Support Files/Pods/Pods.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -84,7 +84,6 @@
 			files = (
 				A4BE24231A4FE737008E040A /* CoreMotion.framework in Frameworks */,
 				A4BF942D1A4CEB46000A3F7A /* ImageIO.framework in Frameworks */,
-				A45A21FB1B29249700B4E6A4 /* libjpeg.a in Frameworks */,
 				A42875B21A4BA79600F46907 /* CoreVideo.framework in Frameworks */,
 				A42875B01A4BA78C00F46907 /* CoreMedia.framework in Frameworks */,
 				A469E0E11A4A59110020DDD9 /* QuartzCore.framework in Frameworks */,
@@ -184,7 +183,6 @@
 				A469E0DE1A4A590D0020DDD9 /* CoreImage.framework */,
 				A469E0DB1A4A279C0020DDD9 /* AVFoundation.framework */,
 				8ADBC057591C2B75A06C99BE /* libPods.a */,
-				A45A21FA1B29249700B4E6A4 /* libjpeg.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -212,7 +210,8 @@
 			isa = PBXGroup;
 			children = (
 				A4EBE0901B2A0621006A1811 /* optical_flow_demo.cpp */,
-				A4EBE0911B2A0621006A1811 /* optical_flow_demo.h */,
+				A4EBE0991B2A17EC006A1811 /* ContourDetector.cpp */,
+				A4EBE09A1B2A17EC006A1811 /* ContourDetector.h */,
 				A45A21F21B29076800B4E6A4 /* UIImage+OpenCV.h */,
 				A45A21F31B29076800B4E6A4 /* UIImage+OpenCV.mm */,
 				A4EBE0861B2A012F006A1811 /* CVWrapper.h */,
@@ -360,6 +359,7 @@
 			files = (
 				A4B4470B1A4F6F8E00BE2B1C /* VideoProcessor.swift in Sources */,
 				A469E0BA1A4A1C020020DDD9 /* AppDelegate.swift in Sources */,
+				A4EBE09B1B2A17EC006A1811 /* ContourDetector.cpp in Sources */,
 				A4EBE0881B2A012F006A1811 /* CVWrapper.mm in Sources */,
 				A4EBE08B1B2A0137006A1811 /* stitching.cpp in Sources */,
 				A46CD3591A4F887F0044B921 /* RecordButton.swift in Sources */,
