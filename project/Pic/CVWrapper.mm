@@ -52,7 +52,7 @@
 
 + (UIImage *)drawContours:(UIImage *)inputImage
 {
-    cv::Mat matImage = [inputImage CVMat3];
+    cv::Mat matImage = [inputImage CVMat];
     ContourDetector::ContourDetector contourDetector;
     return [UIImage imageWithCVMat:contourDetector.processFrame(matImage)];
     
