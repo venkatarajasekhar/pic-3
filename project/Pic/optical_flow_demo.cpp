@@ -26,7 +26,6 @@ inline static double square(int a)
  * unless that image is already non-NULL.  It always leaves a non-NULL image as-is even
  * if that image's size, depth, and/or channels are different than the request.
  */
-
 inline static void allocateOnDemand( IplImage **img, CvSize size, int depth, int channels )
 {
     if ( *img != NULL )	return;
@@ -39,7 +38,7 @@ inline static void allocateOnDemand( IplImage **img, CvSize size, int depth, int
         }
 }
 
-int main(void)
+int mainDeprec(void)
 {
     /* Create an object that decodes the input video stream. */
     CvCapture *input_video = cvCaptureFromFile(
