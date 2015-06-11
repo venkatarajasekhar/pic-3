@@ -31,3 +31,9 @@ DerivedData
 # Carthage/Checkouts
 
 Carthage/Build
+
+*.JPG
+
+*.mp4
+
+*.pdf

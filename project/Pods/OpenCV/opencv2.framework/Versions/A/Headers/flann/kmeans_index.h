@@ -211,7 +211,6 @@ public:
 
         for (int i = 0; i < n; i++) {
             closestDistSq[i] = distance_(dataset_[indices[i]], dataset_[indices[index]], dataset_.cols);
-            closestDistSq[i] = ensureSquareDistance<Distance>( closestDistSq[i] );
             currentPot += closestDistSq[i];
         }
 
@@ -237,10 +236,7 @@ public:
 
                 // Compute the new potential
                 double newPot = 0;
-                for (int i = 0; i < n; i++) {
-                    DistanceType dist = distance_(dataset_[indices[i]], dataset_[indices[index]], dataset_.cols);
-                    newPot += std::min( ensureSquareDistance<Distance>(dist), closestDistSq[i] );
-                }
+                for (int i = 0; i < n; i++) newPot += std::min( distance_(dataset_[indices[i]], dataset_[indices[index]], dataset_.cols), closestDistSq[i] );
 
                 // Store the best result
                 if ((bestNewPot < 0)||(newPot < bestNewPot)) {
@@ -252,10 +248,7 @@ public:
             // Add the appropriate center
             centers[centerCount] = indices[bestNewIndex];
             currentPot = bestNewPot;
-            for (int i = 0; i < n; i++) {
-                DistanceType dist = distance_(dataset_[indices[i]], dataset_[indices[bestNewIndex]], dataset_.cols);
-                closestDistSq[i] = std::min( ensureSquareDistance<Distance>(dist), closestDistSq[i] );
-            }
+            for (int i = 0; i < n; i++) closestDistSq[i] = std::min( distance_(dataset_[indices[i]], dataset_[indices[bestNewIndex]], dataset_.cols), closestDistSq[i] );
         }
 
         centers_length = centerCount;

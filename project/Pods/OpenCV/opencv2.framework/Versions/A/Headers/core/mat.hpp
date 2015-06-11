@@ -366,8 +366,7 @@ inline void Mat::release()
     if( refcount && CV_XADD(refcount, -1) == 1 )
         deallocate();
     data = datastart = dataend = datalimit = 0;
-    for(int i = 0; i < dims; i++)
-        size.p[i] = 0;
+    size.p[0] = 0;
     refcount = 0;
 }
 
@@ -684,8 +683,6 @@ template<typename _Tp> inline void Mat::push_back(const _Tp& elem)
 {
     if( !data )
     {
-        CV_Assert((type()==0) || (DataType<_Tp>::type == type()));
-
         *this = Mat(1, 1, DataType<_Tp>::type, (void*)&elem).clone();
         return;
     }
@@ -2567,7 +2564,7 @@ SparseMatConstIterator_<_Tp>::operator ++()
 template<typename _Tp> inline SparseMatConstIterator_<_Tp>
 SparseMatConstIterator_<_Tp>::operator ++(int)
 {
-    SparseMatConstIterator_<_Tp> it = *this;
+    SparseMatConstIterator it = *this;
     SparseMatConstIterator::operator ++();
     return it;
 }
@@ -2611,7 +2608,7 @@ SparseMatIterator_<_Tp>::operator ++()
 template<typename _Tp> inline SparseMatIterator_<_Tp>
 SparseMatIterator_<_Tp>::operator ++(int)
 {
-    SparseMatIterator_<_Tp> it = *this;
+    SparseMatIterator it = *this;
     SparseMatConstIterator::operator ++();
     return it;
 }

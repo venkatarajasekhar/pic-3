@@ -33,7 +33,8 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var frameData: [Frame]!
     var processingQueue: dispatch_queue_t!
     var motionDataArray: [CMDeviceMotion]!
-    
+
+
     init(faceDetector: CIDetector) {
         self.faceDetector = faceDetector
         self.frameData = Array<Frame>()

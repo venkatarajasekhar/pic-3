@@ -17,7 +17,7 @@
 
 // UIImage to cv::Mat
 - (cv::Mat)CVMat;
-- (cv::Mat)CVMat3;  // no alpha channel
+- (cv::Mat)CVMat3;          // no alpha channel
 - (cv::Mat)CVGrayscaleMat;
 
 @end
