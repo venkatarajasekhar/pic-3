@@ -73,7 +73,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
         
-        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(image))
+        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
         
         dispatch_sync(processingQueue, { () -> Void in
             self.addFrameInSync(newFrame)
