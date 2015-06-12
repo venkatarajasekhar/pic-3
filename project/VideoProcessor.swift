@@ -123,7 +123,8 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         }
-        let allFrameData = frameData
+        // DEBUG: Change this back.
+        maxFrame.frameImage = CVWrapper.getHistogram(maxFrame.frameImage)
         return maxFrame
     }
     

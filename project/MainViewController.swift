@@ -62,11 +62,6 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         
         previewLayer.frame = rootLayer.bounds
         rootLayer.addSublayer(previewLayer)
-        
-        customPreviewLayer.setAffineTransform(CGAffineTransformMakeRotation(CGFloat(M_PI) / 2))
-        customPreviewLayer.frame = rootLayer.bounds
-
-        rootLayer.addSublayer(customPreviewLayer)
     }
     
     func setupMotion() {
@@ -129,10 +124,9 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         videoProcessor = VideoProcessor(faceDetector: faceDetector)
         
         previewLayer = AVCaptureVideoPreviewLayer(session: videoSession)
-        //previewLayer.backgroundColor = UIColor.blackColor().CGColor
+        previewLayer.backgroundColor = UIColor.blackColor().CGColor
         previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
         
-        customPreviewLayer = CALayer()
         
         avConnection = previewLayer.connection
         avConnection.preferredVideoStabilizationMode = .Cinematic
@@ -150,10 +144,10 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
             
             let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
             
-            let temporaryContext: CIContext = CIContext(options: nil)
-            let videoImage: CGImageRef = temporaryContext.createCGImage(ciImage, fromRect: CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetWidth(pixelBuffer)))
-            let originalImage = UIImage(CGImage: videoImage)
-            var processedImage = CVWrapper.drawContours(originalImage)
+            // let temporaryContext: CIContext = CIContext(options: nil)
+            // let videoImage: CGImageRef = temporaryContext.createCGImage(ciImage, fromRect: CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetWidth(pixelBuffer)))
+            // let originalImage = UIImage(CGImage: videoImage)
+            // var processedImage = CVWrapper.drawContours(originalImage)
             
             let currentDeviceOrientation = UIDevice.currentDevice().orientation
             
@@ -177,8 +171,8 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 let features = faceDetector != nil ? faceDetector.featuresInImage(ciImage, options: imageOptions) : []
 
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    // self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
-                    self.customPreviewLayer.contents = processedImage?.CGImage
+                    self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
+                    // self.customPreviewLayer.contents = processedImage?.CGImage
                 })
             } else {
                 dispatch_async(videoProcessorQueue, { () -> Void in

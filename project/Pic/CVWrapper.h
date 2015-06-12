@@ -12,6 +12,6 @@
 @interface CVWrapper : NSObject
 
 + (UIImage *)drawContours:(UIImage *)inputImage;
-+ (NSArray *)getHistogram:(UIImage *)inputImage;
++ (UIImage *)getHistogram:(UIImage *)inputImage;
 
 @end
