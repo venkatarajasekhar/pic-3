@@ -17,12 +17,12 @@ class ContourDetector
 {
     
     // Processes a frame and returns output image
-    public:
-        cv::Mat processFrame(const cv::Mat& inputFrame);
+public:
+    cv::Mat processFrame(const cv::Mat& inputFrame);
     
-    private:
-        cv::Mat gray, edges;
-        void getGray(const cv::Mat& input, cv::Mat& gray);
+private:
+    cv::Mat gray, edges;
+    void getGray(const cv::Mat& input, cv::Mat& gray);
 };
 
 #endif /* defined(__Pic__ContourDetector__) */

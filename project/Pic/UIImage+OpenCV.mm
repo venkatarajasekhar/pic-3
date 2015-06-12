@@ -12,7 +12,7 @@
 
 -(cv::Mat)CVMat
 {
-    CGColorSpaceRef colorSpace = CGImageGetColorSpace(self.CGImage);
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGFloat cols = self.size.width;
     CGFloat rows = self.size.height;
     

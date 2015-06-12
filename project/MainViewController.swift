@@ -25,6 +25,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
     var videoDataOutputQueue: dispatch_queue_t!
     
     var previewLayer: AVCaptureVideoPreviewLayer!
+    var customPreviewLayer: CALayer!
     var avConnection: AVCaptureConnection!
     
     var faceDetector: CIDetector!
@@ -113,7 +114,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         }
         
         // TODO: determine if it's necessary to have 240 FPS
-        configureCameraForHighestFramerate()
+        // configureCameraForHighestFramerate()
         
         
         
@@ -125,6 +126,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         previewLayer = AVCaptureVideoPreviewLayer(session: videoSession)
         previewLayer.backgroundColor = UIColor.blackColor().CGColor
         previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill
+        
         
         avConnection = previewLayer.connection
         avConnection.preferredVideoStabilizationMode = .Cinematic
@@ -141,6 +143,11 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         if let attachments: CFDictionary = attachmentsUnmanaged?.takeRetainedValue() {
             
             let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
+            
+            // let temporaryContext: CIContext = CIContext(options: nil)
+            // let videoImage: CGImageRef = temporaryContext.createCGImage(ciImage, fromRect: CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetWidth(pixelBuffer)))
+            // let originalImage = UIImage(CGImage: videoImage)
+            // var processedImage = CVWrapper.drawContours(originalImage)
             
             let currentDeviceOrientation = UIDevice.currentDevice().orientation
             
@@ -164,8 +171,8 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 let features = faceDetector != nil ? faceDetector.featuresInImage(ciImage, options: imageOptions) : []
 
                 dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                    //self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
-                    CVWrapper.drawContours(UIImage())
+                    self.drawFaceBoxesForFeatures(features, clap: cleanAperature, orientation: currentDeviceOrientation)
+                    // self.customPreviewLayer.contents = processedImage?.CGImage
                 })
             } else {
                 dispatch_async(videoProcessorQueue, { () -> Void in
@@ -336,7 +343,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
     func toggleRecording() {
         currentlyRecording = !self.currentlyRecording
         hideAllFaces()
-
+        NSLog("Entered toggleRecording(). Frame data size: %i", videoProcessor.frameData.count)
         // Make sure we don't skip frames if we're recording
         videoDataOutput.alwaysDiscardsLateVideoFrames = !currentlyRecording
         
@@ -349,17 +356,20 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 self.videoProcessor.processMotion(motionData)
             })
         } else {
-            motionManager.stopDeviceMotionUpdates()
-            videoProcessor.syncMotion()
-            videoProcessor.generateAccelerationScores()
             
             //videoProcessor.printScores()
             //videoProcessor.printMotionDataTimestampsInorder()
             //videoProcessor.printFrameTimestampsInorder()
-            
+            dispatch_sync(videoProcessor.processingQueue, { () -> Void in
+                NSLog("Entered processingQueue. Frame data size: %i", self.videoProcessor.frameData.count)
+                self.motionManager.stopDeviceMotionUpdates()
+                self.videoProcessor.syncMotion()
+                self.videoProcessor.generateAccelerationScores()
+                
+            })
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 let frame = self.videoProcessor.getBestFrame()
-                println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
+                // println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
                 self.bestImageButton = UIButton(frame: self.view.bounds)
                 self.view.addSubview(self.bestImageButton!)
                 self.bestImageButton?.setImage(frame?.frameImage, forState: .Normal)

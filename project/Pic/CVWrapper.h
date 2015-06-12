@@ -1,9 +1,9 @@
 //
 //  CVWrapper.h
-//  CVOpenTemplate
+//  Pic
 //
-//  Created by Washe on 02/01/2013.
-//  Copyright (c) 2013 foundry. All rights reserved.
+//  Created by Kashish Hora on 06/11/2015.
+//  Copyright (c) 2013 Kashish Hora. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
@@ -11,12 +11,7 @@
 
 @interface CVWrapper : NSObject
 
-+ (UIImage*)processImageWithOpenCV:(UIImage*)inputImage;
-
-+ (UIImage*)processWithOpenCVImage1:(UIImage*)inputImage1 image2:(UIImage*)inputImage2;
-
-+ (UIImage*)processWithArray:(NSArray*)imageArray;
-
 + (UIImage *)drawContours:(UIImage *)inputImage;
++ (NSArray *)getHistogram:(UIImage *)inputImage;
 
 @end
