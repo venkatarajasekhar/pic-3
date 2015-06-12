@@ -343,7 +343,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
     func toggleRecording() {
         currentlyRecording = !self.currentlyRecording
         hideAllFaces()
-
+        NSLog("Entered toggleRecording(). Frame data size: %i", videoProcessor.frameData.count)
         // Make sure we don't skip frames if we're recording
         videoDataOutput.alwaysDiscardsLateVideoFrames = !currentlyRecording
         
@@ -356,17 +356,20 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 self.videoProcessor.processMotion(motionData)
             })
         } else {
-            motionManager.stopDeviceMotionUpdates()
-            videoProcessor.syncMotion()
-            videoProcessor.generateAccelerationScores()
             
             //videoProcessor.printScores()
             //videoProcessor.printMotionDataTimestampsInorder()
             //videoProcessor.printFrameTimestampsInorder()
-            
+            dispatch_sync(videoProcessor.processingQueue, { () -> Void in
+                NSLog("Entered processingQueue. Frame data size: %i", self.videoProcessor.frameData.count)
+                self.motionManager.stopDeviceMotionUpdates()
+                self.videoProcessor.syncMotion()
+                self.videoProcessor.generateAccelerationScores()
+                
+            })
             dispatch_async(dispatch_get_main_queue(), { () -> Void in
                 let frame = self.videoProcessor.getBestFrame()
-                println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
+                // println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
                 self.bestImageButton = UIButton(frame: self.view.bounds)
                 self.view.addSubview(self.bestImageButton!)
                 self.bestImageButton?.setImage(frame?.frameImage, forState: .Normal)

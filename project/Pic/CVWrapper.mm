@@ -20,15 +20,21 @@
     return [UIImage imageWithCVMat:contourDetector.processFrame(matImage)];
 }
 
-+ (UIImage *)getHistogram:(UIImage *)inputImage
++ (NSArray *)getHistogram:(UIImage *)inputImage
 {
-    cv::Mat matImage = [inputImage CVMat3];
+    cv::Mat matImage = [inputImage CVMat];
     
     HistogramCalculator::HistogramCalculator histogramCalculator;
-    cv::Mat outputHistogram = histogramCalculator.calculateHistogram(matImage);
+    std::vector<float> outputHistogram = histogramCalculator.calculateHistogram(matImage);
     
+    NSMutableArray *histogramArray = [[NSMutableArray alloc] init];
     
-    return [UIImage imageWithCVMat:outputHistogram];
+    for (std::vector<float>::size_type i = 0; i != outputHistogram.size(); i++) {
+       
+        [histogramArray addObject:[NSNumber numberWithFloat:outputHistogram[i]]];
+    }
+    
+    return histogramArray;
 }
 
 

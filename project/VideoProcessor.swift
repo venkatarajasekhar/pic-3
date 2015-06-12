@@ -25,6 +25,7 @@ struct Frame {
     var motionData: CMDeviceMotion?
     var accelerationScore: AccelerationScore?
     var gravityScore: GravityScore?
+    var histogram: NSArray?
 }
 
 class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -33,7 +34,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var frameData: [Frame]!
     var processingQueue: dispatch_queue_t!
     var motionDataArray: [CMDeviceMotion]!
-
+    
 
     init(faceDetector: CIDetector) {
         self.faceDetector = faceDetector
@@ -70,9 +71,9 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if faceDetector != nil {
             features = faceDetector.featuresInImage(CIImage(CGImage: image?.CGImage), options: imageOptions) as! [CIFaceFeature]
         }
-        
         var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
-        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil)
+        
+        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(image))
         
         dispatch_sync(processingQueue, { () -> Void in
             self.addFrameInSync(newFrame)
@@ -108,23 +109,20 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func getBestFrame() -> Frame? {
         var output = Array<Frame>()
-        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: 0, motionData: nil, accelerationScore: 0, gravityScore: 0)
+        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil)
         let frameSet = self.frameData
-        println()
         for (index, frame: Frame) in enumerate(frameData) {
             if frame.faceScore >= maxFrame.faceScore {
                 if let accelerationScore = frame.accelerationScore {
                     if let gravityScore = frame.gravityScore {
                         if accelerationScore + gravityScore > maxFrame.accelerationScore! + maxFrame.gravityScore! {
-                            println("frame[\(index)]: \(frame)")
+                            //println("frame[\(index)]: \(frame.frameTimestamp)")
                             maxFrame = frame
                         }
                     }
                 }
             }
         }
-        // DEBUG: Change this back.
-        maxFrame.frameImage = CVWrapper.getHistogram(maxFrame.frameImage)
         return maxFrame
     }
     
@@ -224,7 +222,8 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             while (frameData[currentIndex].frameTimestamp < newFrame.frameTimestamp) && (currentIndex < frameData.count - 1) {
                 currentIndex++
             }
-            println("frame[\(currentIndex)].faceScore = \(newFrame.faceScore)")
+            NSLog("frame[%i].faceScore", currentIndex)
+            
             frameData.insert(newFrame, atIndex: currentIndex)
         }
     }
