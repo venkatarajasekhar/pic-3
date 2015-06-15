@@ -107,14 +107,14 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         videoDataOutputQueue = dispatch_queue_create(kOutputDataQueueName, DISPATCH_QUEUE_SERIAL)
         videoDataOutput.setSampleBufferDelegate(self, queue: videoDataOutputQueue)
         
-        videoProcessorQueue = dispatch_queue_create(kVideoProcessorQueueName, DISPATCH_QUEUE_SERIAL)
+        videoProcessorQueue = dispatch_queue_create(kVideoProcessorQueueName, DISPATCH_QUEUE_CONCURRENT)
         
         if videoSession.canAddOutput(videoDataOutput) {
             videoSession.addOutput(videoDataOutput)
         }
         
         // TODO: determine if it's necessary to have 240 FPS
-        configureCameraForHighestFramerate()
+        // configureCameraForHighestFramerate()
         
         let detectorOptions = [CIDetectorAccuracy:CIDetectorAccuracyLow, CIDetectorEyeBlink : 1, CIDetectorSmile : 1]
         faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: detectorOptions as [NSObject : AnyObject])
@@ -142,11 +142,6 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
             
             let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
             
-            // let temporaryContext: CIContext = CIContext(options: nil)
-            // let videoImage: CGImageRef = temporaryContext.createCGImage(ciImage, fromRect: CGRect(x: 0, y: 0, width: CVPixelBufferGetWidth(pixelBuffer), height: CVPixelBufferGetWidth(pixelBuffer)))
-            // let originalImage = UIImage(CGImage: videoImage)
-            // var processedImage = CVWrapper.drawContours(originalImage)
-            
             let currentDeviceOrientation = UIDevice.currentDevice().orientation
             
             var exifOrientation: PhotosExif0Row! = kDeviceOrientationToExifOrientation[isUsingFrontFacingCamera]?[currentDeviceOrientation]
@@ -158,11 +153,16 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
             
             let formatDescription = CMSampleBufferGetFormatDescription(sampleBuffer)
             if formatDescription == nil {
-                println("Could not obtain format description from sample")
+                println("Could not obtain format description from sample.")
                 return
             }
             
             let cleanAperature: CGRect = CMVideoFormatDescriptionGetCleanAperture(formatDescription, 0)
+            let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
+
+            var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
+
+            // NSLog("Got frame %d.", seconds)
             
             if !currentlyRecording {
                 
@@ -174,13 +174,52 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 })
             } else {
                 dispatch_async(videoProcessorQueue, { () -> Void in
-                    let timestamp = CMSampleBufferGetPresentationTimeStamp(sampleBuffer)
-                    self.videoProcessor.processFrames(sampleBuffer, timestamp: timestamp, imageOptions: imageOptions, videoBox: cleanAperature)
+                    self.videoProcessor.processFrames(ciImage, timestamp: timestamp, imageOptions: imageOptions, videoBox: cleanAperature)
                 })
             }
         }
     }
     
+    func toggleRecording() {
+        currentlyRecording = !self.currentlyRecording
+        hideAllFaces()
+        NSLog("Entered toggleRecording(). Frame data size: %i", videoProcessor.frameData.count)
+        // Make sure we don't skip frames if we're recording
+        videoDataOutput.alwaysDiscardsLateVideoFrames = !currentlyRecording
+        
+        // Toggle motion tracking
+        if currentlyRecording {
+            videoProcessor.reset()
+            var error: NSError?
+            motionManager.startDeviceMotionUpdatesToQueue(motionQueue, withHandler: { (motionData: CMDeviceMotion!, error) -> Void in
+                //println("\(motionData.timestamp), \(motionData.gravity.x), \(motionData.gravity.y), \(motionData.gravity.z)")
+                self.videoProcessor.processMotion(motionData)
+            })
+        } else {
+            
+            //videoProcessor.printScores()
+            //videoProcessor.printMotionDataTimestampsInorder()
+            //videoProcessor.printFrameTimestampsInorder()
+            
+            dispatch_sync(videoProcessor.processingQueue, { () -> Void in
+                NSLog("Entered processingQueue. Frame data size: %i", self.videoProcessor.frameData.count)
+                self.motionManager.stopDeviceMotionUpdates()
+                self.videoProcessor.syncMotion()
+                self.videoProcessor.generateAccelerationScores()
+            })
+            dispatch_async(dispatch_get_main_queue(), { () -> Void in
+                let frame = self.videoProcessor.getBestFrame()
+                // println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
+                self.bestImageButton = UIButton(frame: self.view.bounds)
+                self.view.addSubview(self.bestImageButton!)
+                self.bestImageButton?.setImage(frame?.getImage(), forState: .Normal)
+                self.bestImageButton?.hidden = false
+                self.bestImageButton?.addTarget(self, action: Selector("hideBestImageButton"), forControlEvents: .TouchUpInside)
+                self.previewLayer.connection.enabled = false
+            })
+        }
+    }
+
     func drawFaceBoxesForFeatures(features: [AnyObject], clap: CGRect, orientation: UIDeviceOrientation) -> Void {
         let sublayers = previewLayer.sublayers as! [CALayer]
         
@@ -338,46 +377,8 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         }
     }
 
-    func toggleRecording() {
-        currentlyRecording = !self.currentlyRecording
-        hideAllFaces()
-        NSLog("Entered toggleRecording(). Frame data size: %i", videoProcessor.frameData.count)
-        // Make sure we don't skip frames if we're recording
-        videoDataOutput.alwaysDiscardsLateVideoFrames = !currentlyRecording
-        
-        // Toggle motion tracking
-        if currentlyRecording {
-            videoProcessor.reset()
-            var error: NSError?
-            motionManager.startDeviceMotionUpdatesToQueue(motionQueue, withHandler: { (motionData: CMDeviceMotion!, error) -> Void in
-                //println("\(motionData.timestamp), \(motionData.gravity.x), \(motionData.gravity.y), \(motionData.gravity.z)")
-                self.videoProcessor.processMotion(motionData)
-            })
-        } else {
-            
-            //videoProcessor.printScores()
-            //videoProcessor.printMotionDataTimestampsInorder()
-            //videoProcessor.printFrameTimestampsInorder()
-            dispatch_sync(videoProcessor.processingQueue, { () -> Void in
-                NSLog("Entered processingQueue. Frame data size: %i", self.videoProcessor.frameData.count)
-                self.motionManager.stopDeviceMotionUpdates()
-                self.videoProcessor.syncMotion()
-                self.videoProcessor.generateAccelerationScores()
-                
-            })
-            dispatch_async(dispatch_get_main_queue(), { () -> Void in
-                let frame = self.videoProcessor.getBestFrame()
-                // println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
-                self.bestImageButton = UIButton(frame: self.view.bounds)
-                self.view.addSubview(self.bestImageButton!)
-                self.bestImageButton?.setImage(frame?.getImage(), forState: .Normal)
-                self.bestImageButton?.hidden = false
-                self.bestImageButton?.addTarget(self, action: Selector("hideBestImageButton"), forControlEvents: .TouchUpInside)
-            })
-        }
-    }
-    
     func hideBestImageButton() {
+        self.previewLayer.connection.enabled = true
         self.bestImageButton?.removeFromSuperview()
         self.bestImageButton = nil
     }

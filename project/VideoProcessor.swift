@@ -20,7 +20,6 @@ let kProcessingQueueName = "ProcessingQueue"
 
 struct Frame {
     var frameTimestamp: Timestamp?
-    var frameBuffer: CVImageBuffer?
     var frameImage: UIImage?
     var faceScore: FaceScore?
     var motionData: CMDeviceMotion?
@@ -30,29 +29,6 @@ struct Frame {
     
     func getImage() -> UIImage? {
         return frameImage
-    }
-    
-    func getImageDeprec() -> UIImage? {
-        
-        CVPixelBufferLockBaseAddress(frameBuffer, 0)
-        
-        var baseAddress = CVPixelBufferGetBaseAddress(frameBuffer)
-        
-        let bytesPerRow: size_t = CVPixelBufferGetBytesPerRow(frameBuffer);
-        // Get the pixel buffer width and height
-        let width: size_t = CVPixelBufferGetWidth(frameBuffer);
-        let height: size_t = CVPixelBufferGetHeight(frameBuffer);
-        
-        let colorSpace: CGColorSpaceRef = CGColorSpaceCreateDeviceRGB()
-        
-        let bitmapInfo = CGBitmapInfo(CGImageAlphaInfo.PremultipliedFirst.rawValue) | CGBitmapInfo.ByteOrder32Little
-        let context: CGContextRef = CGBitmapContextCreate(baseAddress, width, height, 8, bytesPerRow, colorSpace, bitmapInfo)
-        
-        let cgImage = CGBitmapContextCreateImage(context)
-        
-        CVPixelBufferUnlockBaseAddress(frameBuffer,0)
-        
-        return UIImage(CGImage: cgImage, scale: 1, orientation: UIImageOrientation.Right)
     }
 }
 
@@ -71,10 +47,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         self.motionDataArray = Array<CMDeviceMotion>()
     }
     
-    func processFrames(sampleBuffer: CMSampleBuffer!, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
-        let pixelBuffer: CVPixelBufferRef = CMSampleBufferGetImageBuffer(sampleBuffer)
-    
-        let ciImage = CIImage(CVPixelBuffer: pixelBuffer)
+    func processFrames(ciImage: CIImage, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
         
         var features = [CIFaceFeature]()
             
@@ -83,15 +56,25 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
         
-        var newFrame = Frame(frameTimestamp: seconds, frameBuffer: nil, frameImage: UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right), faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
+        var newFrame = Frame(frameTimestamp: seconds, frameImage: UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right), faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
         
         dispatch_sync(processingQueue, { () -> Void in
             self.addFrameInSync(newFrame)
         })
     }
     
-    func renderFrame(frame: Frame) -> UIImage {
-        return UIImage()
+    private func addFrameInSync(newFrame: Frame) {
+        if frameData.count == 0 {
+            frameData.append(newFrame)
+        } else {
+            var currentIndex = 0
+            while (frameData[currentIndex].frameTimestamp < newFrame.frameTimestamp) && (currentIndex < frameData.count - 1) {
+                currentIndex++
+            }
+            NSLog("frame[%i].faceScore", currentIndex)
+            
+            frameData.insert(newFrame, atIndex: currentIndex)
+        }
     }
     
     func processMotion(newMotionData: CMDeviceMotion) {
@@ -119,7 +102,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func getBestFrame() -> Frame? {
         var output = Array<Frame>()
-        var maxFrame = Frame(frameTimestamp: nil, frameBuffer: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil)
+        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil)
         let frameSet = self.frameData
         for (index, frame: Frame) in enumerate(frameData) {
             if frame.faceScore >= maxFrame.faceScore {
@@ -224,19 +207,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    private func addFrameInSync(newFrame: Frame) {
-        if frameData.count == 0 {
-            frameData.append(newFrame)
-        } else {
-            var currentIndex = 0
-            while (frameData[currentIndex].frameTimestamp < newFrame.frameTimestamp) && (currentIndex < frameData.count - 1) {
-                currentIndex++
-            }
-            NSLog("frame[%i].faceScore", currentIndex)
-            
-            frameData.insert(newFrame, atIndex: currentIndex)
-        }
-    }
+
     
     private func faceScore(features: [CIFaceFeature]) -> FaceScore {
         var score = 0.0
