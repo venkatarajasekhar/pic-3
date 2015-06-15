@@ -20,12 +20,40 @@ let kProcessingQueueName = "ProcessingQueue"
 
 struct Frame {
     var frameTimestamp: Timestamp?
+    var frameBuffer: CVImageBuffer?
     var frameImage: UIImage?
     var faceScore: FaceScore?
     var motionData: CMDeviceMotion?
     var accelerationScore: AccelerationScore?
     var gravityScore: GravityScore?
     var histogram: NSArray?
+    
+    func getImage() -> UIImage? {
+        return frameImage
+    }
+    
+    func getImageDeprec() -> UIImage? {
+        
+        CVPixelBufferLockBaseAddress(frameBuffer, 0)
+        
+        var baseAddress = CVPixelBufferGetBaseAddress(frameBuffer)
+        
+        let bytesPerRow: size_t = CVPixelBufferGetBytesPerRow(frameBuffer);
+        // Get the pixel buffer width and height
+        let width: size_t = CVPixelBufferGetWidth(frameBuffer);
+        let height: size_t = CVPixelBufferGetHeight(frameBuffer);
+        
+        let colorSpace: CGColorSpaceRef = CGColorSpaceCreateDeviceRGB()
+        
+        let bitmapInfo = CGBitmapInfo(CGImageAlphaInfo.PremultipliedFirst.rawValue) | CGBitmapInfo.ByteOrder32Little
+        let context: CGContextRef = CGBitmapContextCreate(baseAddress, width, height, 8, bytesPerRow, colorSpace, bitmapInfo)
+        
+        let cgImage = CGBitmapContextCreateImage(context)
+        
+        CVPixelBufferUnlockBaseAddress(frameBuffer,0)
+        
+        return UIImage(CGImage: cgImage, scale: 1, orientation: UIImageOrientation.Right)
+    }
 }
 
 class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -44,36 +72,18 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func processFrames(sampleBuffer: CMSampleBuffer!, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
-        
-        let imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-        CVPixelBufferLockBaseAddress(imageBuffer, 0)
-        
-        var baseAddress = CVPixelBufferGetBaseAddress(imageBuffer)
-        
-        let bytesPerRow: size_t = CVPixelBufferGetBytesPerRow(imageBuffer);
-        // Get the pixel buffer width and height
-        let width: size_t = CVPixelBufferGetWidth(imageBuffer);
-        let height: size_t = CVPixelBufferGetHeight(imageBuffer);
-        
-        let colorSpace: CGColorSpaceRef = CGColorSpaceCreateDeviceRGB()
-        
-        let bitmapInfo = CGBitmapInfo(CGImageAlphaInfo.PremultipliedFirst.rawValue) | CGBitmapInfo.ByteOrder32Little
-        let context: CGContextRef = CGBitmapContextCreate(baseAddress, width, height, 8, bytesPerRow, colorSpace, bitmapInfo)
-        
-        let cgImage = CGBitmapContextCreateImage(context)
-        
-        CVPixelBufferUnlockBaseAddress(imageBuffer,0)
-        
-        let image = UIImage(CGImage: cgImage, scale: 1, orientation: UIImageOrientation.Right)
+        let pixelBuffer: CVPixelBufferRef = CMSampleBufferGetImageBuffer(sampleBuffer)
+    
+        let ciImage = CIImage(CVPixelBuffer: pixelBuffer)
         
         var features = [CIFaceFeature]()
             
         if faceDetector != nil {
-            features = faceDetector.featuresInImage(CIImage(CGImage: image?.CGImage), options: imageOptions) as! [CIFaceFeature]
+            features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
         }
         var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
         
-        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
+        var newFrame = Frame(frameTimestamp: seconds, frameBuffer: nil, frameImage: UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right), faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
         
         dispatch_sync(processingQueue, { () -> Void in
             self.addFrameInSync(newFrame)
@@ -109,7 +119,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func getBestFrame() -> Frame? {
         var output = Array<Frame>()
-        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil)
+        var maxFrame = Frame(frameTimestamp: nil, frameBuffer: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil)
         let frameSet = self.frameData
         for (index, frame: Frame) in enumerate(frameData) {
             if frame.faceScore >= maxFrame.faceScore {
