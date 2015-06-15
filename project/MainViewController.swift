@@ -107,16 +107,14 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         videoDataOutputQueue = dispatch_queue_create(kOutputDataQueueName, DISPATCH_QUEUE_SERIAL)
         videoDataOutput.setSampleBufferDelegate(self, queue: videoDataOutputQueue)
         
-        videoProcessorQueue = dispatch_queue_create(kVideoProcessorQueueName, DISPATCH_QUEUE_CONCURRENT)
+        videoProcessorQueue = dispatch_queue_create(kVideoProcessorQueueName, DISPATCH_QUEUE_SERIAL)
         
         if videoSession.canAddOutput(videoDataOutput) {
             videoSession.addOutput(videoDataOutput)
         }
         
         // TODO: determine if it's necessary to have 240 FPS
-        // configureCameraForHighestFramerate()
-        
-        
+        configureCameraForHighestFramerate()
         
         let detectorOptions = [CIDetectorAccuracy:CIDetectorAccuracyLow, CIDetectorEyeBlink : 1, CIDetectorSmile : 1]
         faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: detectorOptions as [NSObject : AnyObject])
@@ -372,7 +370,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 // println("frame: \(frame!.frameTimestamp), \(frame!.faceScore), \(frame!.gravityScore), \(frame!.accelerationScore)")
                 self.bestImageButton = UIButton(frame: self.view.bounds)
                 self.view.addSubview(self.bestImageButton!)
-                self.bestImageButton?.setImage(frame?.frameImage, forState: .Normal)
+                self.bestImageButton?.setImage(frame?.getImage(), forState: .Normal)
                 self.bestImageButton?.hidden = false
                 self.bestImageButton?.addTarget(self, action: Selector("hideBestImageButton"), forControlEvents: .TouchUpInside)
             })
