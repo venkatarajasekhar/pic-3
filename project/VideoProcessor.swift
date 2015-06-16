@@ -14,6 +14,7 @@ import CoreMotion
 typealias FaceScore = Double
 typealias AccelerationScore = Double
 typealias GravityScore = Double
+typealias OpticalFlowScore = Double
 typealias Timestamp = Double
 
 let kProcessingQueueName = "ProcessingQueue"
@@ -26,9 +27,14 @@ struct Frame {
     var accelerationScore: AccelerationScore?
     var gravityScore: GravityScore?
     var histogram: NSArray?
+    var opticalFlowScore: OpticalFlowScore?
     
     func getImage() -> UIImage? {
         return frameImage
+    }
+    
+    mutating func setOpticalFlowScore(score: OpticalFlowScore?) {
+        opticalFlowScore = score
     }
 }
 
@@ -55,12 +61,18 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
         }
         var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
+        let image = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
         
-        var newFrame = Frame(frameTimestamp: seconds, frameImage: UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right), faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
+        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(image), opticalFlowScore: 0)
         
         dispatch_sync(processingQueue, { () -> Void in
             self.addFrameInSync(newFrame)
         })
+    }
+    
+    private func calculateOpticalFlow(previousFrame: Frame, currentFrame: Frame) -> OpticalFlowScore? {
+        let opticalFlowScore: OpticalFlowScore = CVWrapper.calculateOpticalFlowForPreviousImage(previousFrame.frameImage, andCurrent: currentFrame.frameImage)
+        return opticalFlowScore > -1 ? opticalFlowScore : nil
     }
     
     private func addFrameInSync(newFrame: Frame) {
@@ -71,9 +83,19 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             while (frameData[currentIndex].frameTimestamp < newFrame.frameTimestamp) && (currentIndex < frameData.count - 1) {
                 currentIndex++
             }
-            NSLog("frame[%i].faceScore", currentIndex)
+            var opticalFlowScore: OpticalFlowScore?
+            if currentIndex > 0 {
+                NSLog("frameData[%i]: ", currentIndex)
+                opticalFlowScore = calculateOpticalFlow(frameData[currentIndex - 1], currentFrame: frameData[currentIndex])
+                if let score = opticalFlowScore {
+                    // NSLog("frame[%i].opticalFlowScore: %g", currentIndex, score)
+                }
+                else {
+                    // NSLog("frame[%i].opticalFlowScore not defined.", currentIndex)
+                }
+            }
             
-            frameData.insert(newFrame, atIndex: currentIndex)
+            frameData.insert(Frame(frameTimestamp: newFrame.frameTimestamp, frameImage: newFrame.frameImage, faceScore: newFrame.faceScore, motionData: newFrame.motionData, accelerationScore: newFrame.accelerationScore, gravityScore: newFrame.gravityScore, histogram: newFrame.histogram, opticalFlowScore: opticalFlowScore), atIndex: currentIndex)
         }
     }
     
@@ -102,7 +124,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func getBestFrame() -> Frame? {
         var output = Array<Frame>()
-        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil)
+        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil, opticalFlowScore: 0)
         let frameSet = self.frameData
         for (index, frame: Frame) in enumerate(frameData) {
             if frame.faceScore >= maxFrame.faceScore {
@@ -206,9 +228,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             println("\(motionData.timestamp)")
         }
     }
-    
-
-    
+        
     private func faceScore(features: [CIFaceFeature]) -> FaceScore {
         var score = 0.0
         

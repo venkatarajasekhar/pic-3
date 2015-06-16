@@ -11,12 +11,14 @@
 using namespace cv;
 using namespace std;
 
-vector<float> HistogramCalculator::calculateHistogram(const cv::Mat &inputFrame)
+vector<float> HistogramCalculator::calculateHistogram(const Mat &inputMatrix)
 {
     
     // Split inputFrame into R, G, and B components
     vector<Mat> bgrPlanes;
-    split(inputFrame, bgrPlanes);
+    split(inputMatrix, bgrPlanes);
+    
+    // cout << "inputMatrix = " << endl << " " << inputMatrix << endl << endl;
     
     int histSize = 256;
     float range[] = {0, 256};

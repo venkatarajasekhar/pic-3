@@ -181,6 +181,9 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
     }
     
     func toggleRecording() {
+        
+        // TODO: See if the timing is working properly - should we keep frames that are synced in after toggleRecording() is triggered? (Are they from before hitting the button or after?
+        
         currentlyRecording = !self.currentlyRecording
         hideAllFaces()
         NSLog("Entered toggleRecording(). Frame data size: %i", videoProcessor.frameData.count)

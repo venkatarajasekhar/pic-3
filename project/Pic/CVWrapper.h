@@ -13,5 +13,5 @@
 
 + (UIImage *)drawContours:(UIImage *)inputImage;
 + (NSArray *)getHistogram:(UIImage *)inputImage;
-
++ (double)calculateOpticalFlowForPreviousImage:(UIImage *)previousImage andCurrent:(UIImage *)currentImage;
 @end
