@@ -26,7 +26,7 @@ struct Frame {
     var motionData: CMDeviceMotion?
     var accelerationScore: AccelerationScore?
     var gravityScore: GravityScore?
-    var histogram: NSArray?
+    var histogram: UIImage?
     var opticalFlowScore: OpticalFlowScore?
     
     func getImage() -> UIImage? {
@@ -53,21 +53,28 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         self.motionDataArray = Array<CMDeviceMotion>()
     }
     
-    func processFrames(ciImage: CIImage, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
+    func processFrames(sampleBuffer: CMSampleBufferRef, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
         
-        var features = [CIFaceFeature]()
+        let attachmentsUnmanaged = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate))
+        
+        if let attachments: CFDictionary = attachmentsUnmanaged?.takeRetainedValue() {
+            let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+            let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
+            let uiImage = UIImage(buffer: sampleBuffer)
             
-        if faceDetector != nil {
-            features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
+            var features = [CIFaceFeature]()
+                
+            if faceDetector != nil {
+                features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
+            }
+            var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
+            
+            var newFrame = Frame(frameTimestamp: seconds, frameImage: uiImage, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(uiImage), opticalFlowScore: 0)
+            
+            dispatch_sync(processingQueue, { () -> Void in
+                self.addFrameInSync(newFrame)
+            })
         }
-        var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
-        let image = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
-        
-        var newFrame = Frame(frameTimestamp: seconds, frameImage: image, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(image), opticalFlowScore: 0)
-        
-        dispatch_sync(processingQueue, { () -> Void in
-            self.addFrameInSync(newFrame)
-        })
     }
     
     private func calculateOpticalFlow(previousFrame: Frame, currentFrame: Frame) -> OpticalFlowScore? {
@@ -138,6 +145,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         }
+        maxFrame.frameImage = CVWrapper.getHistogram(maxFrame.frameImage)
         return maxFrame
     }
     

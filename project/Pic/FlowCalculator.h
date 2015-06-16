@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
 
-cv::Mat getGrayscale(const cv::Mat& inputMatrix, int scale);
+cv::Mat getGrayscale(const cv::Mat& inputMatrix);
 
 class FlowCalculator
 {public:

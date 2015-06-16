@@ -11,24 +11,22 @@
 using namespace cv;
 using namespace std;
 
-Mat getGrayscale(const Mat& inputMatrix, int scale) {
-    Mat scaledInputMatrix(inputMatrix.rows / scale, inputMatrix.cols / scale, inputMatrix.type());
-    resize(inputMatrix, scaledInputMatrix, scaledInputMatrix.size());
-    Mat grayscaleScaledInputMatrix(scaledInputMatrix.rows, scaledInputMatrix.cols, CV_8UC1);
-    cvtColor(scaledInputMatrix, grayscaleScaledInputMatrix, CV_BGR2GRAY);
-    return grayscaleScaledInputMatrix;
+Mat getGrayscale(const Mat& inputMatrix) {
+    Mat grayscaleMatrix;
+    cvtColor(inputMatrix, grayscaleMatrix, COLOR_BGR2GRAY);
+    return grayscaleMatrix;
 }
 
 double FlowCalculator::calculateOpticalFlow(const Mat& previousMatrix, const Mat& currentMatrix)
 {
     // TODO: Figure out how scale is relevent
-    float scale = 20;
+    float scale = 1;
     
     // Generate scaled grayscale image from previousMatrix
-    Mat previousGrayscale = getGrayscale(previousMatrix, scale);
+    Mat previousGrayscale = getGrayscale(previousMatrix);
     
     // Generate scaled grayscale image from currentMatrix
-    Mat currentGrayscale = getGrayscale(currentMatrix, scale);
+    Mat currentGrayscale = getGrayscale(currentMatrix);
     
     double m = -1;
     

@@ -134,13 +134,11 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
     
     func captureOutput(captureOutput: AVCaptureOutput!, didOutputSampleBuffer sampleBuffer: CMSampleBuffer!, fromConnection connection: AVCaptureConnection!) {
         
-        let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
         
         let attachmentsUnmanaged = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate))
         
         if let attachments: CFDictionary = attachmentsUnmanaged?.takeRetainedValue() {
             
-            let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
             
             let currentDeviceOrientation = UIDevice.currentDevice().orientation
             
@@ -165,6 +163,8 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
             // NSLog("Got frame %d.", seconds)
             
             if !currentlyRecording {
+                let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
+                let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
                 
                 let features = faceDetector != nil ? faceDetector.featuresInImage(ciImage, options: imageOptions) : []
 
@@ -174,7 +174,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 })
             } else {
                 dispatch_async(videoProcessorQueue, { () -> Void in
-                    self.videoProcessor.processFrames(ciImage, timestamp: timestamp, imageOptions: imageOptions, videoBox: cleanAperature)
+                    self.videoProcessor.processFrames(sampleBuffer, timestamp: timestamp, imageOptions: imageOptions, videoBox: cleanAperature)
                 })
             }
         }

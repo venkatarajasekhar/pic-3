@@ -16,7 +16,7 @@ class HistogramCalculator
 {
     // Calculates histogram and writes it tou outputHistogram
 public:
-    std::vector<float> calculateHistogram(const cv::Mat& inputFrame);
+    cv::Mat calculateHistogram(const cv::Mat& inputFrame);
 };
 
 

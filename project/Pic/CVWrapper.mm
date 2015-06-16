@@ -22,21 +22,26 @@
     return [UIImage imageWithCVMat:contourDetector.processFrame(matImage)];
 }
 
-+ (NSArray *)getHistogram:(UIImage *)inputImage
++ (UIImage *)getHistogram:(UIImage *)inputImage
 {
     cv::Mat matImage = [inputImage CVMat];
     
     HistogramCalculator::HistogramCalculator histogramCalculator;
-    std::vector<float> outputHistogram = histogramCalculator.calculateHistogram(matImage);
+    cv::Mat outputHistogram = histogramCalculator.calculateHistogram(matImage);
     
-    NSMutableArray *histogramArray = [[NSMutableArray alloc] init];
     
-    for (std::vector<float>::size_type i = 0; i != outputHistogram.size(); i++) {
-       
-        [histogramArray addObject:[NSNumber numberWithFloat:outputHistogram[i]]];
-    }
+    return [UIImage imageWithCVMat:outputHistogram];
     
-    return histogramArray;
+//    std::vector<float> outputHistogram = histogramCalculator.calculateHistogram(matImage);
+    
+//    NSMutableArray *histogramArray = [[NSMutableArray alloc] init];
+//    
+//    for (std::vector<float>::size_type i = 0; i != outputHistogram.size(); i++) {
+//       
+//        [histogramArray addObject:[NSNumber numberWithFloat:outputHistogram[i]]];
+//    }
+//    
+//    return histogramArray;
 }
 
 + (double)calculateOpticalFlowForPreviousImage:(UIImage *)previousImage andCurrent:(UIImage *)currentImage
@@ -44,15 +49,10 @@
     cv::Mat previousMatrix = [previousImage CVMat];
     cv::Mat currentMatrix = [currentImage CVMat];
     
-    FlowCalculator::FlowCalculator flowCalculator;
-    int scale = 20;
-    UIImage *previousGrayscaleScaledImage = [UIImage imageWithCVMat:getGrayscale(previousMatrix, scale)];
-    UIImage *currentGrayscaleScaledImage = [UIImage imageWithCVMat:getGrayscale(currentMatrix, scale)];
+    // FlowCalculator::FlowCalculator flowCalculator;
+    UIImage *previousGrayscaleImage = [UIImage imageWithCVMat:getGrayscale(previousMatrix)];
+    UIImage *currentGrayscaleImage = [UIImage imageWithCVMat:getGrayscale(currentMatrix)];
 
-    CGImageRef previousImageRef = previousGrayscaleScaledImage.CGImage;
-    CGImageRef currentImageRef = currentGrayscaleScaledImage.CGImage;
-    CGImageRelease(previousImageRef);
-    CGImageRelease(currentImageRef);
     
     // double output = flowCalculator.calculateOpticalFlow(previousMatrix, currentMatrix);
     
