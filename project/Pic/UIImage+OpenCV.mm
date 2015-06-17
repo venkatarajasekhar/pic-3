@@ -26,10 +26,11 @@
                                                     colorSpace,                 // Colorspace
                                                     kCGImageAlphaNoneSkipLast |
                                                     kCGBitmapByteOrderDefault); // Bitmap info flags
-    
-    CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), self.CGImage);
+    CIContext *ciContext = [CIContext contextWithOptions:nil];
+    CGImageRef cgImage = [ciContext createCGImage:self.CIImage fromRect: [self.CIImage extent]];
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), cgImage);
+    CGImageRelease(cgImage);
     CGContextRelease(contextRef);
-    
     return cvMat;
 }
 
@@ -57,7 +58,6 @@
                                                     colorSpace,                 // Colorspace
                                                     kCGImageAlphaNoneSkipLast |
                                                     kCGBitmapByteOrderDefault); // Bitmap info flags
-    
     CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), self.CGImage);
     CGContextRelease(contextRef);
     CGColorSpaceRelease(colorSpace);

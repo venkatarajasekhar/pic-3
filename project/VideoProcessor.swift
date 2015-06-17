@@ -75,6 +75,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         let pixelBuffer: CVPixelBufferRef = CMSampleBufferGetImageBuffer(sampleBuffer)
     
         let ciImage = CIImage(CVPixelBuffer: pixelBuffer)
+        let uiImage = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
         
         var features = [CIFaceFeature]()
             
@@ -83,17 +84,13 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
         var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
         
-        var newFrame = Frame(frameTimestamp: seconds, frameBuffer: nil, frameImage: UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right), faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: nil)
+        var newFrame = Frame(frameTimestamp: seconds, frameBuffer: nil, frameImage: uiImage, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(uiImage))
         
         dispatch_sync(processingQueue, { () -> Void in
             self.addFrameInSync(newFrame)
         })
     }
-    
-    func renderFrame(frame: Frame) -> UIImage {
-        return UIImage()
-    }
-    
+
     func processMotion(newMotionData: CMDeviceMotion) {
         dispatch_async(processingQueue, { () -> Void in
             self.addMotionInSync(newMotionData)
