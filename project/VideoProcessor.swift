@@ -53,7 +53,11 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         self.motionDataArray = Array<CMDeviceMotion>()
     }
     
-    func processFrames(sampleBuffer: CMSampleBufferRef, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
+    func processFrames(sampleBuffer: CMSampleBuffer!, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
+        let pixelBuffer: CVPixelBufferRef = CMSampleBufferGetImageBuffer(sampleBuffer)
+    
+        let ciImage = CIImage(CVPixelBuffer: pixelBuffer)
+        let uiImage = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
         
         let attachmentsUnmanaged = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate))
         
@@ -105,7 +109,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             frameData.insert(Frame(frameTimestamp: newFrame.frameTimestamp, frameImage: newFrame.frameImage, faceScore: newFrame.faceScore, motionData: newFrame.motionData, accelerationScore: newFrame.accelerationScore, gravityScore: newFrame.gravityScore, histogram: newFrame.histogram, opticalFlowScore: opticalFlowScore), atIndex: currentIndex)
         }
     }
-    
+
     func processMotion(newMotionData: CMDeviceMotion) {
         dispatch_async(processingQueue, { () -> Void in
             self.addMotionInSync(newMotionData)
