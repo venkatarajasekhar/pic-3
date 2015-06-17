@@ -29,8 +29,10 @@
     CIContext *ciContext = [CIContext contextWithOptions:nil];
     CGImageRef cgImage = [ciContext createCGImage:self.CIImage fromRect: [self.CIImage extent]];
     CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), cgImage);
+    
     CGImageRelease(cgImage);
     CGContextRelease(contextRef);
+    CGColorSpaceRelease(colorSpace);
     
     return cvMat;
 }

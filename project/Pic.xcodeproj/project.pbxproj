@@ -24,7 +24,6 @@
 		A469E0E11A4A59110020DDD9 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A469E0E01A4A59110020DDD9 /* QuartzCore.framework */; };
 		A46CD3591A4F887F0044B921 /* RecordButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A46CD3581A4F887F0044B921 /* RecordButton.swift */; };
 		A49814CA1A4E811500730F6A /* ImageUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49814C91A4E811500730F6A /* ImageUtilities.swift */; };
-		A4A6C4421B30A8F700A226CE /* UIImage+Convert.m in Sources */ = {isa = PBXBuildFile; fileRef = A4A6C4411B30A8F700A226CE /* UIImage+Convert.m */; };
 		A4B4470B1A4F6F8E00BE2B1C /* VideoProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */; };
 		A4BE24231A4FE737008E040A /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4BE24221A4FE737008E040A /* CoreMotion.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		A4BF942D1A4CEB46000A3F7A /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4BF942C1A4CEB46000A3F7A /* ImageIO.framework */; };
@@ -69,8 +68,6 @@
 		A46CD3581A4F887F0044B921 /* RecordButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordButton.swift; sourceTree = "<group>"; };
 		A49814C91A4E811500730F6A /* ImageUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageUtilities.swift; sourceTree = "<group>"; };
 		A49AE2D11B2A58B4009975C5 /* HistogramCalculator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HistogramCalculator.h; sourceTree = "<group>"; };
-		A4A6C4401B30A8F700A226CE /* UIImage+Convert.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "UIImage+Convert.h"; sourceTree = "<group>"; };
-		A4A6C4411B30A8F700A226CE /* UIImage+Convert.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "UIImage+Convert.m"; sourceTree = "<group>"; };
 		A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = VideoProcessor.swift; path = ../VideoProcessor.swift; sourceTree = "<group>"; };
 		A4BE24221A4FE737008E040A /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		A4BF942C1A4CEB46000A3F7A /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
@@ -153,8 +150,6 @@
 		A469E0B71A4A1C020020DDD9 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				A4A6C4401B30A8F700A226CE /* UIImage+Convert.h */,
-				A4A6C4411B30A8F700A226CE /* UIImage+Convert.m */,
 				A45A21F21B29076800B4E6A4 /* UIImage+OpenCV.h */,
 				A45A21F31B29076800B4E6A4 /* UIImage+OpenCV.mm */,
 				A45A21F11B29076800B4E6A4 /* Pic-Bridging-Header.h */,
@@ -366,7 +361,6 @@
 			files = (
 				A42695B11B2FA0B1005206FF /* HistogramCalculator.cpp in Sources */,
 				A4B4470B1A4F6F8E00BE2B1C /* VideoProcessor.swift in Sources */,
-				A4A6C4421B30A8F700A226CE /* UIImage+Convert.m in Sources */,
 				A469E0BA1A4A1C020020DDD9 /* AppDelegate.swift in Sources */,
 				A42695B41B2FA119005206FF /* FlowCalculator.cpp in Sources */,
 				A4EBE09B1B2A17EC006A1811 /* ContourDetector.cpp in Sources */,

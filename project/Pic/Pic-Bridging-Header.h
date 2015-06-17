@@ -3,4 +3,3 @@
 //
 
 #import "CVWrapper.h"
-#import "UIImage+Convert.h"

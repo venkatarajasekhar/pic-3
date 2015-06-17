@@ -40,41 +40,38 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var faceDetector: CIDetector!
     var frameData: [Frame]!
     var processingQueue: dispatch_queue_t!
+    var flowProcessingQueue: dispatch_queue_t!
     var motionDataArray: [CMDeviceMotion]!
     
     init(faceDetector: CIDetector) {
         self.faceDetector = faceDetector
-        self.frameData = Array<Frame>()
+        self.frameData = [Frame]()
         self.processingQueue = dispatch_queue_create(kProcessingQueueName, DISPATCH_QUEUE_SERIAL)
-        self.motionDataArray = Array<CMDeviceMotion>()
+        self.motionDataArray = [CMDeviceMotion]()
     }
     
-    func processFrames(sampleBuffer: CMSampleBuffer!, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
+    func processFrames(ciImage: CIImage, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
+        let uiImage = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
+        var features = [CIFaceFeature]()
         
-        let attachmentsUnmanaged = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate))
-        
-        if let attachments: CFDictionary = attachmentsUnmanaged?.takeRetainedValue() {
-            let pixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer)
-            let ciImage = CIImage(CVPixelBuffer: pixelBuffer, options: attachments as [NSObject : AnyObject])
-            let uiImage = UIImage(buffer: sampleBuffer)
-            
-            var features = [CIFaceFeature]()
-                
-            if faceDetector != nil {
-                features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
-            }
-            var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
-            
-            var newFrame = Frame(frameTimestamp: seconds, frameImage: uiImage, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: CVWrapper.getHistogram(uiImage), opticalFlowScore: 0)
-            
-            dispatch_sync(processingQueue, { () -> Void in
-                self.addFrameInSync(newFrame)
-            })
+        if faceDetector != nil {
+            features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
         }
+        
+        var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
+        var histogram: NSArray?
+        // histogram = CVWrapper.getHistogram(uiImage);
+        
+        var newFrame = Frame(frameTimestamp: seconds, frameImage: uiImage, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: histogram, opticalFlowScore: 0)
+        
+        dispatch_sync(processingQueue, { () -> Void in
+            self.addFrameInSync(newFrame)
+        })
     }
     
     private func calculateOpticalFlow(previousFrame: Frame, currentFrame: Frame) -> OpticalFlowScore? {
-        let opticalFlowScore: OpticalFlowScore = CVWrapper.calculateOpticalFlowForPreviousImage(previousFrame.frameImage, andCurrent: currentFrame.frameImage)
+        var opticalFlowScore: OpticalFlowScore?
+        // opticalFlowScore = CVWrapper.calculateOpticalFlowForPreviousImage(previousFrame.frameImage, andCurrent: currentFrame.frameImage)
         return opticalFlowScore > -1 ? opticalFlowScore : nil
     }
     

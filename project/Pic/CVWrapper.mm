@@ -46,7 +46,11 @@
     cv::Mat currentMatrix = [currentImage CVMat];
     
     FlowCalculator::FlowCalculator flowCalculator;
-    return flowCalculator.calculateOpticalFlow(previousMatrix, currentMatrix);
+    double flowMetric = flowCalculator.calculateOpticalFlow(previousMatrix, currentMatrix);
+    previousMatrix.release();
+    currentMatrix.release();
+    
+    return flowMetric;
 }
 
 @end
