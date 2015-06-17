@@ -12,6 +12,6 @@
 @interface CVWrapper : NSObject
 
 + (UIImage *)drawContours:(UIImage *)inputImage;
-+ (UIImage *)getHistogram:(UIImage *)inputImage;
++ (NSArray *)getHistogram:(UIImage *)inputImage;
 + (double)calculateOpticalFlowForPreviousImage:(UIImage *)previousImage andCurrent:(UIImage *)currentImage;
 @end

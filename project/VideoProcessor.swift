@@ -26,16 +26,13 @@ struct Frame {
     var motionData: CMDeviceMotion?
     var accelerationScore: AccelerationScore?
     var gravityScore: GravityScore?
-    var histogram: UIImage?
+    var histogram: NSArray?
     var opticalFlowScore: OpticalFlowScore?
     
     func getImage() -> UIImage? {
         return frameImage
     }
     
-    mutating func setOpticalFlowScore(score: OpticalFlowScore?) {
-        opticalFlowScore = score
-    }
 }
 
 class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -45,7 +42,6 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var processingQueue: dispatch_queue_t!
     var motionDataArray: [CMDeviceMotion]!
     
-
     init(faceDetector: CIDetector) {
         self.faceDetector = faceDetector
         self.frameData = Array<Frame>()
@@ -54,10 +50,6 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func processFrames(sampleBuffer: CMSampleBuffer!, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
-        let pixelBuffer: CVPixelBufferRef = CMSampleBufferGetImageBuffer(sampleBuffer)
-    
-        let ciImage = CIImage(CVPixelBuffer: pixelBuffer)
-        let uiImage = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
         
         let attachmentsUnmanaged = CMCopyDictionaryOfAttachments(kCFAllocatorDefault, sampleBuffer, CMAttachmentMode(kCMAttachmentMode_ShouldPropagate))
         
@@ -96,13 +88,13 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             }
             var opticalFlowScore: OpticalFlowScore?
             if currentIndex > 0 {
-                NSLog("frameData[%i]: ", currentIndex)
+                // NSLog("frameData[%i]: ", currentIndex)
                 opticalFlowScore = calculateOpticalFlow(frameData[currentIndex - 1], currentFrame: frameData[currentIndex])
                 if let score = opticalFlowScore {
-                    // NSLog("frame[%i].opticalFlowScore: %g", currentIndex, score)
+                    NSLog("frame[%i].opticalFlowScore: %g", currentIndex, score)
                 }
                 else {
-                    // NSLog("frame[%i].opticalFlowScore not defined.", currentIndex)
+                    NSLog("frame[%i].opticalFlowScore not defined.", currentIndex)
                 }
             }
             
@@ -128,11 +120,6 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         }
     }
     
-    func reset(){
-        self.frameData = Array<Frame>()
-        self.motionDataArray = Array<CMDeviceMotion>()
-    }
-    
     func getBestFrame() -> Frame? {
         var output = Array<Frame>()
         var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil, opticalFlowScore: 0)
@@ -149,7 +136,6 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
                 }
             }
         }
-        maxFrame.frameImage = CVWrapper.getHistogram(maxFrame.frameImage)
         return maxFrame
     }
     
@@ -240,7 +226,12 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             println("\(motionData.timestamp)")
         }
     }
-        
+    
+    func reset(){
+        self.frameData = Array<Frame>()
+        self.motionDataArray = Array<CMDeviceMotion>()
+    }
+    
     private func faceScore(features: [CIFaceFeature]) -> FaceScore {
         var score = 0.0
         

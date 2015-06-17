@@ -11,7 +11,7 @@
 using namespace cv;
 using namespace std;
 
-Mat HistogramCalculator::calculateHistogram(const Mat &inputMatrix)
+vector<float> HistogramCalculator::calculateHistogram(const Mat &inputMatrix)
 {
     
     // Split inputFrame into R, G, and B components
@@ -32,40 +32,18 @@ Mat HistogramCalculator::calculateHistogram(const Mat &inputMatrix)
     calcHist(&bgrPlanes[1], 1, 0, Mat(), g_hist, 1, &histSize, &histRange, uniform, accumulate);
     calcHist(&bgrPlanes[2], 1, 0, Mat(), r_hist, 1, &histSize, &histRange, uniform, accumulate);
     
-//    vector<float> outputVector;
-//
-//    for(int i = 0; i < histSize; i++ ) {
-//        outputVector.push_back(b_hist.at<float>(i));
-//    }
-//    for( int i = 0; i < histSize; i++ ) {
-//        outputVector.push_back(g_hist.at<float>(i));
-//    }
-//    for( int i = 0; i < histSize; i++ ){
-//        outputVector.push_back(r_hist.at<float>(i));
-//    }
+    vector<float> outputVector;
 
-    int hist_w = 512; int hist_h = 400;
-    int bin_w = cvRound((double)hist_w/histSize);
+    for(int i = 0; i < histSize; i++ ) {
+        outputVector.push_back(b_hist.at<float>(i));
+    }
+    for( int i = 0; i < histSize; i++ ) {
+        outputVector.push_back(g_hist.at<float>(i));
+    }
+    for( int i = 0; i < histSize; i++ ){
+        outputVector.push_back(r_hist.at<float>(i));
+    }
     
-    Mat histImage(hist_h, hist_w, CV_8UC3, Scalar(0,0,0));
-    
-    normalize(b_hist, b_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat());
-    normalize(g_hist, g_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-    normalize(r_hist, r_hist, 0, histImage.rows, NORM_MINMAX, -1, Mat() );
-    
-    for( int i = 1; i < histSize; i++ )
-        {
-        line( histImage, Point( bin_w*(i-1), hist_h - cvRound(b_hist.at<float>(i-1)) ) ,
-             Point( bin_w*(i), hist_h - cvRound(b_hist.at<float>(i)) ),
-             Scalar( 255, 0, 0), 2, 8, 0  );
-        line( histImage, Point( bin_w*(i-1), hist_h - cvRound(g_hist.at<float>(i-1)) ) ,
-             Point( bin_w*(i), hist_h - cvRound(g_hist.at<float>(i)) ),
-             Scalar( 0, 255, 0), 2, 8, 0  );
-        line( histImage, Point( bin_w*(i-1), hist_h - cvRound(r_hist.at<float>(i-1)) ) ,
-             Point( bin_w*(i), hist_h - cvRound(r_hist.at<float>(i)) ),
-             Scalar( 0, 0, 255), 2, 8, 0  );
-        }
-    
-    return histImage;
+    return outputVector;
 
 }

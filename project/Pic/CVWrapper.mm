@@ -22,26 +22,22 @@
     return [UIImage imageWithCVMat:contourDetector.processFrame(matImage)];
 }
 
-+ (UIImage *)getHistogram:(UIImage *)inputImage
++ (NSArray *)getHistogram:(UIImage *)inputImage
 {
     cv::Mat matImage = [inputImage CVMat];
     
     HistogramCalculator::HistogramCalculator histogramCalculator;
-    cv::Mat outputHistogram = histogramCalculator.calculateHistogram(matImage);
     
+    std::vector<float> outputHistogram = histogramCalculator.calculateHistogram(matImage);
     
-    return [UIImage imageWithCVMat:outputHistogram];
+    NSMutableArray *histogramArray = [[NSMutableArray alloc] init];
     
-//    std::vector<float> outputHistogram = histogramCalculator.calculateHistogram(matImage);
+    for (std::vector<float>::size_type i = 0; i != outputHistogram.size(); i++) {
+       
+        [histogramArray addObject:[NSNumber numberWithFloat:outputHistogram[i]]];
+    }
     
-//    NSMutableArray *histogramArray = [[NSMutableArray alloc] init];
-//    
-//    for (std::vector<float>::size_type i = 0; i != outputHistogram.size(); i++) {
-//       
-//        [histogramArray addObject:[NSNumber numberWithFloat:outputHistogram[i]]];
-//    }
-//    
-//    return histogramArray;
+    return histogramArray;
 }
 
 + (double)calculateOpticalFlowForPreviousImage:(UIImage *)previousImage andCurrent:(UIImage *)currentImage
@@ -49,14 +45,8 @@
     cv::Mat previousMatrix = [previousImage CVMat];
     cv::Mat currentMatrix = [currentImage CVMat];
     
-    // FlowCalculator::FlowCalculator flowCalculator;
-    UIImage *previousGrayscaleImage = [UIImage imageWithCVMat:getGrayscale(previousMatrix)];
-    UIImage *currentGrayscaleImage = [UIImage imageWithCVMat:getGrayscale(currentMatrix)];
-
-    
-    // double output = flowCalculator.calculateOpticalFlow(previousMatrix, currentMatrix);
-    
-    return -1;
+    FlowCalculator::FlowCalculator flowCalculator;
+    return flowCalculator.calculateOpticalFlow(previousMatrix, currentMatrix);
 }
 
 @end
