@@ -18,21 +18,19 @@ typealias OpticalFlowScore = Double
 typealias Timestamp = Double
 
 let kProcessingQueueName = "ProcessingQueue"
+let kSyncingDelay = 10
 
 struct Frame {
-    var frameTimestamp: Timestamp?
-    var frameImage: UIImage?
-    var faceScore: FaceScore?
-    var motionData: CMDeviceMotion?
-    var accelerationScore: AccelerationScore?
-    var gravityScore: GravityScore?
-    var histogram: NSArray?
-    var opticalFlowScore: OpticalFlowScore?
+    var frameTimestamp: Timestamp? = nil
+    var frameImage: UIImage? = nil
+    var faceScore: FaceScore = 0.0
+    var motionData: CMDeviceMotion? = nil
+    var accelerationScore: AccelerationScore = 0.0
+    var gravityScore: GravityScore = 0.0
     
     func getImage() -> UIImage? {
         return frameImage
     }
-    
 }
 
 class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
@@ -42,60 +40,48 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var processingQueue: dispatch_queue_t!
     var flowProcessingQueue: dispatch_queue_t!
     var motionDataArray: [CMDeviceMotion]!
+    var currentlyProcessing: Bool
     
     init(faceDetector: CIDetector) {
         self.faceDetector = faceDetector
         self.frameData = [Frame]()
         self.processingQueue = dispatch_queue_create(kProcessingQueueName, DISPATCH_QUEUE_SERIAL)
         self.motionDataArray = [CMDeviceMotion]()
+        self.currentlyProcessing = true
     }
     
     func processFrames(ciImage: CIImage, timestamp: CMTime, imageOptions:Dictionary<NSString, Int>, videoBox: CGRect) {
-        let uiImage = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
-        var features = [CIFaceFeature]()
-        
-        if faceDetector != nil {
-            features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
+        if currentlyProcessing {
+            let uiImage = UIImage(CIImage: ciImage, scale: 1.0, orientation: .Right)
+            var features = [CIFaceFeature]()
+            
+            if faceDetector != nil {
+                features = faceDetector.featuresInImage(ciImage, options: imageOptions) as! [CIFaceFeature]
+            }
+            var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
+            var newFrame = Frame(frameTimestamp: seconds, frameImage: uiImage, faceScore: self.faceScore(features), motionData: nil, accelerationScore: 0, gravityScore: 0)
+
+            dispatch_sync(processingQueue, { () -> Void in
+                self.addFrameInSync(newFrame)
+            })
         }
-        
-        var seconds: Timestamp = Double(timestamp.value) / Double(timestamp.timescale)
-        var histogram: NSArray?
-        // histogram = CVWrapper.getHistogram(uiImage);
-        
-        var newFrame = Frame(frameTimestamp: seconds, frameImage: uiImage, faceScore: self.faceScore(features), motionData: nil, accelerationScore: nil, gravityScore: nil, histogram: histogram, opticalFlowScore: 0)
-        
-        dispatch_sync(processingQueue, { () -> Void in
-            self.addFrameInSync(newFrame)
-        })
-    }
-    
-    private func calculateOpticalFlow(previousFrame: Frame, currentFrame: Frame) -> OpticalFlowScore? {
-        var opticalFlowScore: OpticalFlowScore?
-        // opticalFlowScore = CVWrapper.calculateOpticalFlowForPreviousImage(previousFrame.frameImage, andCurrent: currentFrame.frameImage)
-        return opticalFlowScore > -1 ? opticalFlowScore : nil
     }
     
     private func addFrameInSync(newFrame: Frame) {
         if frameData.count == 0 {
             frameData.append(newFrame)
         } else {
-            var currentIndex = 0
+            var currentIndex = frameData.count - kSyncingDelay >= 0 ? frameData.count - kSyncingDelay : 0
             while (frameData[currentIndex].frameTimestamp < newFrame.frameTimestamp) && (currentIndex < frameData.count - 1) {
                 currentIndex++
             }
-            var opticalFlowScore: OpticalFlowScore?
-            if currentIndex > 0 {
-                // NSLog("frameData[%i]: ", currentIndex)
-                opticalFlowScore = calculateOpticalFlow(frameData[currentIndex - 1], currentFrame: frameData[currentIndex])
-                if let score = opticalFlowScore {
-                    NSLog("frame[%i].opticalFlowScore: %g", currentIndex, score)
-                }
-                else {
-                    NSLog("frame[%i].opticalFlowScore not defined.", currentIndex)
-                }
+            if currentIndex == frameData.count {
+                NSLog("Frame dropped.")
             }
-            
-            frameData.insert(Frame(frameTimestamp: newFrame.frameTimestamp, frameImage: newFrame.frameImage, faceScore: newFrame.faceScore, motionData: newFrame.motionData, accelerationScore: newFrame.accelerationScore, gravityScore: newFrame.gravityScore, histogram: newFrame.histogram, opticalFlowScore: opticalFlowScore), atIndex: currentIndex)
+            else {
+                NSLog("frameData[%i] added.", currentIndex)
+                frameData.insert(newFrame, atIndex: currentIndex)
+            }
         }
     }
 
@@ -119,17 +105,13 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
     func getBestFrame() -> Frame? {
         var output = Array<Frame>()
-        var maxFrame = Frame(frameTimestamp: nil, frameImage: nil, faceScore: nil, motionData: nil, accelerationScore: 0, gravityScore: 0, histogram: nil, opticalFlowScore: 0)
+        var maxFrame = Frame()
         let frameSet = self.frameData
         for (index, frame: Frame) in enumerate(frameData) {
             if frame.faceScore >= maxFrame.faceScore {
-                if let accelerationScore = frame.accelerationScore {
-                    if let gravityScore = frame.gravityScore {
-                        if accelerationScore + gravityScore > maxFrame.accelerationScore! + maxFrame.gravityScore! {
-                            //println("frame[\(index)]: \(frame.frameTimestamp)")
-                            maxFrame = frame
-                        }
-                    }
+                if frame.accelerationScore + frame.gravityScore > maxFrame.accelerationScore + maxFrame.gravityScore {
+                    //println("frame[\(index)]: \(frame.frameTimestamp)")
+                    maxFrame = frame
                 }
             }
         }
@@ -178,37 +160,24 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             frameData[currentIndex].gravityScore = accelerationDifferenceMagnitude(frameData[currentIndex - 1].motionData?.gravity, second: frameData[currentIndex].motionData?.gravity)
             frameData[currentIndex].accelerationScore = accelerationDifferenceMagnitude(frameData[currentIndex - 1].motionData?.userAcceleration, second: frameData[currentIndex].motionData?.userAcceleration)
             
-            if let value = frameData[currentIndex].gravityScore {
-                if value > maxGravity {
-                    maxGravity = value
-                }
-            }
-            if let value = frameData[currentIndex].accelerationScore {
-                if value > maxAcceleration {
-                    maxAcceleration = value
-                }
-            }
+            maxGravity = frameData[currentIndex].gravityScore > maxGravity ? frameData[currentIndex].gravityScore : maxGravity
+            maxAcceleration = frameData[currentIndex].accelerationScore > maxGravity ? frameData[currentIndex].accelerationScore : maxGravity
+
             currentIndex++
         }
         
         currentIndex = 1
         // Scale scores to make more positive = better
         while currentIndex < frameData.count {
-            if let unscaledGravityScore = frameData[currentIndex].gravityScore {
-                frameData[currentIndex].gravityScore = maxGravity - unscaledGravityScore
-            }
-            if let unscaledAccelerationScore = frameData[currentIndex].accelerationScore {
-                frameData[currentIndex].accelerationScore = maxAcceleration - unscaledAccelerationScore
-            }
+            frameData[currentIndex].gravityScore = maxGravity - frameData[currentIndex].gravityScore
+            frameData[currentIndex].accelerationScore = maxAcceleration - frameData[currentIndex].accelerationScore
             currentIndex++
         }
     }
     
     func printScores() {
         for frame: Frame in frameData {
-            if let score = frame.accelerationScore {
-                println("\(score)")
-            }
+            println("\(frame.accelerationScore)")
         }
     }
     
@@ -225,8 +194,16 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     }
     
     func reset(){
-        self.frameData = Array<Frame>()
-        self.motionDataArray = Array<CMDeviceMotion>()
+        self.frameData = [Frame]()
+        self.motionDataArray = [CMDeviceMotion]()
+    }
+    
+    func stopProcessing() {
+        self.currentlyProcessing = false
+    }
+    
+    func startProcessing() {
+        self.currentlyProcessing = true
     }
     
     private func faceScore(features: [CIFaceFeature]) -> FaceScore {
@@ -247,15 +224,13 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         return score
     }
     
-    private func accelerationDifferenceMagnitude(first: CMAcceleration?, second: CMAcceleration?) -> Double? {
-        var output: Double?
-        if let first = first {
-            if let second = second {
-                var x = second.x - first.x
-                var y = second.y - second.y
-                var z = second.z - second.z
-                output = sqrt(x*x + y*y + z*z)
-            }
+    private func accelerationDifferenceMagnitude(first: CMAcceleration?, second: CMAcceleration?) -> Double {
+        var output = 0.0
+        if let first = first, second = second {
+            var x = second.x - first.x
+            var y = second.y - second.y
+            var z = second.z - second.z
+            output = sqrt(x*x + y*y + z*z)
         }
         return output
     }

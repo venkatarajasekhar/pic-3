@@ -202,8 +202,6 @@
 		A46CD35B1A4F88DC0044B921 /* Utility */ = {
 			isa = PBXGroup;
 			children = (
-				A4EBE0861B2A012F006A1811 /* CVWrapper.h */,
-				A4EBE0871B2A012F006A1811 /* CVWrapper.mm */,
 				A469E0B91A4A1C020020DDD9 /* AppDelegate.swift */,
 				A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */,
 				A49814C91A4E811500730F6A /* ImageUtilities.swift */,
@@ -216,10 +214,12 @@
 			children = (
 				A42695B31B2FA119005206FF /* FlowCalculator.h */,
 				A42695B21B2FA119005206FF /* FlowCalculator.cpp */,
-				A4EBE0991B2A17EC006A1811 /* ContourDetector.cpp */,
 				A4EBE09A1B2A17EC006A1811 /* ContourDetector.h */,
+				A4EBE0991B2A17EC006A1811 /* ContourDetector.cpp */,
 				A49AE2D11B2A58B4009975C5 /* HistogramCalculator.h */,
 				A42695B01B2FA0B1005206FF /* HistogramCalculator.cpp */,
+				A4EBE0861B2A012F006A1811 /* CVWrapper.h */,
+				A4EBE0871B2A012F006A1811 /* CVWrapper.mm */,
 			);
 			name = OpenCV;
 			sourceTree = "<group>";
@@ -511,7 +511,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Pic/Pic-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				VALID_ARCHS = "arm64 armv7 armv7s";
+				VALID_ARCHS = "armv7 armv7s arm64";
 			};
 			name = Debug;
 		};
@@ -538,7 +538,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "Pic/Pic-Bridging-Header.h";
-				VALID_ARCHS = "arm64 armv7 armv7s";
+				VALID_ARCHS = "armv7 armv7s arm64";
 			};
 			name = Release;
 		};

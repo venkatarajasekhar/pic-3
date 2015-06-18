@@ -75,7 +75,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
     
     func setupAVSession() {
         
-        videoSession.sessionPreset = AVCaptureSessionPreset1280x720
+        videoSession.sessionPreset = AVCaptureSessionPresetHigh
         
         cameraDevice = AVCaptureDevice.defaultDeviceWithMediaType(AVMediaTypeVideo)
         if cameraDevice == nil {
@@ -114,7 +114,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         }
         
         // TODO: determine if it's necessary to have 240 FPS
-        // configureCameraForHighestFramerate()
+        configureCameraForHighestFramerate()
         
         let detectorOptions = [CIDetectorAccuracy:CIDetectorAccuracyLow, CIDetectorEyeBlink : 1, CIDetectorSmile : 1]
         faceDetector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: detectorOptions as [NSObject : AnyObject])
@@ -183,7 +183,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         
         // TODO: See if the timing is working properly - should we keep frames that are synced in after toggleRecording() is triggered? (Are they from before hitting the button or after?
         
-        currentlyRecording = !self.currentlyRecording
+        currentlyRecording = !currentlyRecording
         hideAllFaces()
         NSLog("Entered toggleRecording(). Frame data size: %i", videoProcessor.frameData.count)
         // Make sure we don't skip frames if we're recording
@@ -192,6 +192,7 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
         // Toggle motion tracking
         if currentlyRecording {
             videoProcessor.reset()
+            videoProcessor.startProcessing()
             var error: NSError?
             motionManager.startDeviceMotionUpdatesToQueue(motionQueue, withHandler: { (motionData: CMDeviceMotion!, error) -> Void in
                 //println("\(motionData.timestamp), \(motionData.gravity.x), \(motionData.gravity.y), \(motionData.gravity.z)")
@@ -199,6 +200,8 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
             })
         } else {
             
+            self.videoProcessor.stopProcessing()
+
             //videoProcessor.printScores()
             //videoProcessor.printMotionDataTimestampsInorder()
             //videoProcessor.printFrameTimestampsInorder()
