@@ -38,7 +38,6 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     var faceDetector: CIDetector!
     var frameData: [Frame]!
     var processingQueue: dispatch_queue_t!
-    var flowProcessingQueue: dispatch_queue_t!
     var motionDataArray: [CMDeviceMotion]!
     var currentlyProcessing: Bool
     
@@ -64,6 +63,9 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             dispatch_sync(processingQueue, { () -> Void in
                 self.addFrameInSync(newFrame)
             })
+        }
+        else {
+            NSLog("Frame dropped.")
         }
     }
     

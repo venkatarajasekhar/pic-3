@@ -199,7 +199,6 @@ class MainViewController: UIViewController, AVCaptureVideoDataOutputSampleBuffer
                 self.videoProcessor.processMotion(motionData)
             })
         } else {
-            
             self.videoProcessor.stopProcessing()
 
             //videoProcessor.printScores()
