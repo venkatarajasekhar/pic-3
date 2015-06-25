@@ -11,27 +11,6 @@ import AVFoundation
 import ImageIO
 import CoreMotion
 
-typealias FaceScore = Double
-typealias AccelerationScore = Double
-typealias GravityScore = Double
-typealias OpticalFlowScore = Double
-typealias Timestamp = Double
-
-let kProcessingQueueName = "ProcessingQueue"
-let kSyncingDelay = 10
-
-struct Frame {
-    var frameTimestamp: Timestamp? = nil
-    var frameImage: UIImage? = nil
-    var faceScore: FaceScore = 0.0
-    var motionData: CMDeviceMotion? = nil
-    var accelerationScore: AccelerationScore = 0.0
-    var gravityScore: GravityScore = 0.0
-    
-    func getImage() -> UIImage? {
-        return frameImage
-    }
-}
 
 class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     
@@ -44,7 +23,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
     init(faceDetector: CIDetector) {
         self.faceDetector = faceDetector
         self.frameData = [Frame]()
-        self.processingQueue = dispatch_queue_create(kProcessingQueueName, DISPATCH_QUEUE_SERIAL)
+        self.processingQueue = dispatch_queue_create(kVideoProcessorProcessingQueueName, DISPATCH_QUEUE_SERIAL)
         self.motionDataArray = [CMDeviceMotion]()
         self.currentlyProcessing = true
     }
@@ -63,8 +42,7 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
             dispatch_sync(processingQueue, { () -> Void in
                 self.addFrameInSync(newFrame)
             })
-        }
-        else {
+        } else {
             NSLog("Frame dropped.")
         }
     }
@@ -73,14 +51,13 @@ class VideoProcessor: NSObject, AVCaptureVideoDataOutputSampleBufferDelegate {
         if frameData.count == 0 {
             frameData.append(newFrame)
         } else {
-            var currentIndex = frameData.count - kSyncingDelay >= 0 ? frameData.count - kSyncingDelay : 0
+            var currentIndex = frameData.count - kVideoProcessorSyncingDelay >= 0 ? frameData.count - kVideoProcessorSyncingDelay : 0
             while (frameData[currentIndex].frameTimestamp < newFrame.frameTimestamp) && (currentIndex < frameData.count - 1) {
                 currentIndex++
             }
             if currentIndex == frameData.count {
                 NSLog("Frame dropped.")
-            }
-            else {
+            } else {
                 NSLog("frameData[%i] added.", currentIndex)
                 frameData.insert(newFrame, atIndex: currentIndex)
             }

@@ -96,11 +96,9 @@ func CreateCGImageFromCVPixelBuffer(pixelBuffer:CVPixelBufferRef) -> CGImage!
     var sourcePixelFormat: OSType = CVPixelBufferGetPixelFormatType( pixelBuffer )
     if ( kCVPixelFormatType_32ARGB == Int(sourcePixelFormat) ) {
         bitmapInfo = CGBitmapInfo(CGBitmapInfo.ByteOrder32Big.rawValue | CGImageAlphaInfo.NoneSkipFirst.rawValue)
-    }
-    else if ( kCVPixelFormatType_32BGRA == Int(sourcePixelFormat) ) {
+    } else if ( kCVPixelFormatType_32BGRA == Int(sourcePixelFormat) ) {
         bitmapInfo = CGBitmapInfo(CGBitmapInfo.ByteOrder32Little.rawValue | CGImageAlphaInfo.NoneSkipFirst.rawValue)
-    }
-    else {
+    } else {
         return nil // -95014; // only uncompressed pixel formats
     }
     
@@ -114,8 +112,7 @@ func CreateCGImageFromCVPixelBuffer(pixelBuffer:CVPixelBufferRef) -> CGImage!
     let context = CGBitmapContextCreate(sourceBaseAddr, width, height, 8, sourceRowBytes, colorspace, bitmapInfo)
     if (context != nil) {
         image = CGBitmapContextCreateImage(context)
-    }
-    else {
+    } else {
         println("CreateCGImageFromCVPixelBuffer():  Failed to create bitmap context")
     }
     CVPixelBufferUnlockBaseAddress(pixelBuffer, 0)

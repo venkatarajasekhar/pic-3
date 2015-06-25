@@ -24,6 +24,9 @@
 		A469E0E11A4A59110020DDD9 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A469E0E01A4A59110020DDD9 /* QuartzCore.framework */; };
 		A46CD3591A4F887F0044B921 /* RecordButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A46CD3581A4F887F0044B921 /* RecordButton.swift */; };
 		A49814CA1A4E811500730F6A /* ImageUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49814C91A4E811500730F6A /* ImageUtilities.swift */; };
+		A49C75E21B3B833C00EE440E /* FrameProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49C75E11B3B833C00EE440E /* FrameProcessor.swift */; };
+		A49C75E41B3B835B00EE440E /* MainUtilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = A49C75E31B3B835B00EE440E /* MainUtilities.swift */; };
+		A4B234AB1B3C83BE007A7B2D /* MotionProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B234AA1B3C83BE007A7B2D /* MotionProcessor.swift */; };
 		A4B4470B1A4F6F8E00BE2B1C /* VideoProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */; };
 		A4BE24231A4FE737008E040A /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4BE24221A4FE737008E040A /* CoreMotion.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		A4BF942D1A4CEB46000A3F7A /* ImageIO.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A4BF942C1A4CEB46000A3F7A /* ImageIO.framework */; };
@@ -68,6 +71,9 @@
 		A46CD3581A4F887F0044B921 /* RecordButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RecordButton.swift; sourceTree = "<group>"; };
 		A49814C91A4E811500730F6A /* ImageUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageUtilities.swift; sourceTree = "<group>"; };
 		A49AE2D11B2A58B4009975C5 /* HistogramCalculator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HistogramCalculator.h; sourceTree = "<group>"; };
+		A49C75E11B3B833C00EE440E /* FrameProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FrameProcessor.swift; sourceTree = "<group>"; };
+		A49C75E31B3B835B00EE440E /* MainUtilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MainUtilities.swift; sourceTree = "<group>"; };
+		A4B234AA1B3C83BE007A7B2D /* MotionProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = MotionProcessor.swift; sourceTree = "<group>"; };
 		A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = VideoProcessor.swift; path = ../VideoProcessor.swift; sourceTree = "<group>"; };
 		A4BE24221A4FE737008E040A /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		A4BF942C1A4CEB46000A3F7A /* ImageIO.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ImageIO.framework; path = System/Library/Frameworks/ImageIO.framework; sourceTree = SDKROOT; };
@@ -136,8 +142,11 @@
 		A469E0B61A4A1C020020DDD9 /* Pic */ = {
 			isa = PBXGroup;
 			children = (
-				A4EBE0851B2A00B7006A1811 /* OpenCV */,
-				A46CD35B1A4F88DC0044B921 /* Utility */,
+				A469E0B91A4A1C020020DDD9 /* AppDelegate.swift */,
+				A469E0D91A4A27780020DDD9 /* MainViewController.swift */,
+				A46CD35B1A4F88DC0044B921 /* Utilities */,
+				A49C75DF1B3B830500EE440E /* Processors */,
+				A49C75E01B3B832700EE440E /* Analysis */,
 				A46CD35A1A4F88BD0044B921 /* UI/UX */,
 				A469E0BD1A4A1C020020DDD9 /* Main.storyboard */,
 				A469E0C21A4A1C020020DDD9 /* LaunchScreen.xib */,
@@ -194,19 +203,35 @@
 			isa = PBXGroup;
 			children = (
 				A46CD3581A4F887F0044B921 /* RecordButton.swift */,
-				A469E0D91A4A27780020DDD9 /* MainViewController.swift */,
 			);
 			name = UI/UX;
 			sourceTree = "<group>";
 		};
-		A46CD35B1A4F88DC0044B921 /* Utility */ = {
+		A46CD35B1A4F88DC0044B921 /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
-				A469E0B91A4A1C020020DDD9 /* AppDelegate.swift */,
-				A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */,
+				A49C75E31B3B835B00EE440E /* MainUtilities.swift */,
 				A49814C91A4E811500730F6A /* ImageUtilities.swift */,
 			);
-			name = Utility;
+			name = Utilities;
+			sourceTree = "<group>";
+		};
+		A49C75DF1B3B830500EE440E /* Processors */ = {
+			isa = PBXGroup;
+			children = (
+				A4B4470A1A4F6F8E00BE2B1C /* VideoProcessor.swift */,
+				A49C75E11B3B833C00EE440E /* FrameProcessor.swift */,
+				A4B234AA1B3C83BE007A7B2D /* MotionProcessor.swift */,
+			);
+			name = Processors;
+			sourceTree = "<group>";
+		};
+		A49C75E01B3B832700EE440E /* Analysis */ = {
+			isa = PBXGroup;
+			children = (
+				A4EBE0851B2A00B7006A1811 /* OpenCV */,
+			);
+			name = Analysis;
 			sourceTree = "<group>";
 		};
 		A4EBE0851B2A00B7006A1811 /* OpenCV */ = {
@@ -365,10 +390,13 @@
 				A42695B41B2FA119005206FF /* FlowCalculator.cpp in Sources */,
 				A4EBE09B1B2A17EC006A1811 /* ContourDetector.cpp in Sources */,
 				A4EBE0881B2A012F006A1811 /* CVWrapper.mm in Sources */,
+				A4B234AB1B3C83BE007A7B2D /* MotionProcessor.swift in Sources */,
 				A46CD3591A4F887F0044B921 /* RecordButton.swift in Sources */,
 				A469E0DA1A4A27780020DDD9 /* MainViewController.swift in Sources */,
 				A45A21F41B29076800B4E6A4 /* UIImage+OpenCV.mm in Sources */,
+				A49C75E21B3B833C00EE440E /* FrameProcessor.swift in Sources */,
 				A49814CA1A4E811500730F6A /* ImageUtilities.swift in Sources */,
+				A49C75E41B3B835B00EE440E /* MainUtilities.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
